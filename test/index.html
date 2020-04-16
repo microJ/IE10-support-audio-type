@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <input id="input" type="file" name="选择文件" multiple accept="audio/*" />
+
+    <div class="info"></div>
+
+    <script>
+      var infoList = [];
+      function renderInfo(text) {
+        infoList.push(text);
+        var infoEl = document.querySelector(".info");
+        var infoText = "";
+        infoList.forEach(function (info) {
+          infoText += info + "<br/>";
+        });
+        infoEl.innerHTML = infoText;
+      }
+
+      var input = document.querySelector("#input");
+
+      input.onchange = function (e) {
+        infoList = [];
+        var files = [].slice.call(this.files || []);
+        if (!files.length) {
+          console.error("未选择文件");
+          return;
+        }
+
+        files.forEach(function (file) {
+          var url = window.URL.createObjectURL(file);
+          var audio = new Audio(url);
+          audio.setAttribute("preload", "metadata");
+
+          audio.addEventListener("loadedmetadata", function (e) {
+            renderInfo(
+              file.name + "(" + file.type + "): " + e.target.duration + "s"
+            );
+            window.URL.revokeObjectURL(url);
+          });
+          audio.onerror = function (e) {
+            console.error(file.name, audio.error);
+            renderInfo(
+              file.name +
+                "(" +
+                file.type +
+                "): <span style='color:red'>fail</span>"
+            );
+            window.URL.revokeObjectURL(url);
+          };
+          audio.src = url;
+        });
+      };
+    </script>
+  </body>
+</html>
